@@ -10,13 +10,20 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 import android.widget.TextView;
 import android.hardware.SensorEventListener;
 
-public class SensorMonitoring extends AppCompatActivity implements SensorEventListener {
+import java.util.List;
+
+import world.we.deserve.DAO.SensorAccelerometerSQLiteHelper;
+import world.we.deserve.DTO.SensorAccelerometer;
+
+public class SensorMonitoring extends AppCompatActivity implements SensorEventListener{
 
 
     private float lastX, lastY, lastZ;
@@ -38,9 +45,12 @@ public class SensorMonitoring extends AppCompatActivity implements SensorEventLi
 
     public Vibrator v;
 
+    private SensorAccelerometerSQLiteHelper db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_sensor_monitoring);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -56,6 +66,10 @@ public class SensorMonitoring extends AppCompatActivity implements SensorEventLi
 
         initializeViews();
 
+        // open the database of the application context
+        db = new SensorAccelerometerSQLiteHelper(getApplicationContext());
+
+
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         if (sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null) {
             // success! we have an accelerometer
@@ -69,6 +83,34 @@ public class SensorMonitoring extends AppCompatActivity implements SensorEventLi
 
         //initialize vibration
         v = (Vibrator) this.getSystemService(Context.VIBRATOR_SERVICE);
+
+        Button buttonStore = (Button)findViewById(R.id.buttonStore);
+
+        buttonStore.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                Log.i("buttonStore", "Click");
+                SensorAccelerometer sa = new SensorAccelerometer();
+                sa.setValue(1d);
+                sa.setDatetime(1l);
+                db.createAccelerometerValue(sa);
+            }
+        });
+
+        Button buttonQueryAll = (Button)findViewById(R.id.buttonQueryAll);
+
+        buttonQueryAll.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                Log.i("buttonQueryAll", "Click");
+                List values = db.getAllValues();
+                for (Object objeto:values) {
+                    Log.i("values", objeto.toString());
+                }
+            }
+        });
 
     }
 
