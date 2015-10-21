@@ -4,6 +4,7 @@ import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.design.widget.FloatingActionButton;
@@ -18,10 +19,22 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.hardware.SensorEventListener;
 
+import java.util.Calendar;
 import java.util.List;
 
 import world.we.deserve.DAO.SensorAccelerometerSQLiteHelper;
 import world.we.deserve.DTO.SensorAccelerometer;
+
+import org.joda.time.DateTime;
+import org.joda.time.LocalTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 public class SensorMonitoring extends AppCompatActivity implements SensorEventListener{
 
@@ -46,6 +59,8 @@ public class SensorMonitoring extends AppCompatActivity implements SensorEventLi
     public Vibrator v;
 
     private SensorAccelerometerSQLiteHelper db;
+
+    DateTime lastUpdate = new DateTime();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -190,6 +205,33 @@ public class SensorMonitoring extends AppCompatActivity implements SensorEventLi
 
         // vibrate();
 
+        boolean hayQueActualizar= false;
+
+        DateTime now= new DateTime();
+
+        /*if (lastUpdate==null)
+            lastUpdate= now;
+
+        Calendar calendar= Calendar.getInstance();
+        calendar.setTime(lastUpdate);
+        calendar.add(Calendar.SECOND, 1);
+
+        Date aux= calendar.getTime();
+ */
+        /*if (lastUpdate.compareTo(aux)==-1) {
+            new UpdateTask().execute();
+            lastUpdate= now;
+        }*/
+        DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd hh:mm:ss");
+
+        if (lastUpdate.plusSeconds(1).isBefore(now))
+        {
+            lastUpdate = now;
+            new UpdateTask(lastX, lastY, lastZ).execute();
+        }
+
+        Log.i("Compare dates ", "Asíncrono"+dtf.print(now)+" "+dtf.print(lastUpdate));
+
     }
 
     // if the change in the accelerometer value is big enough, then vibrate!
@@ -226,6 +268,35 @@ public class SensorMonitoring extends AppCompatActivity implements SensorEventLi
         if (deltaZ > deltaZMax) {
             deltaZMax = deltaZ;
             maxZ.setText(Float.toString(deltaZMax));
+        }
+    }
+
+    private class UpdateTask extends AsyncTask<URL, Integer, Long> {
+
+       private float lastX, lastY, lastZ;
+
+        public UpdateTask(float lastX, float lastY, float lastZ) {
+            this.lastX = lastX;
+            this.lastY = lastY;
+            this.lastZ = lastZ;
+        }
+
+        protected Long doInBackground(URL... urls) {
+            int count = urls.length;
+
+            Log.i("Last Position", "Last position: "+lastX+" "+ lastY+" "+lastZ);
+
+
+            return 0l;
+        }
+
+        protected void onProgressUpdate(Integer... progress) {
+            //setProgressPercent(progress[0]);
+        }
+
+        protected void onPostExecute(Long result) {
+            //showDialog("Downloaded " + result + " bytes");
+
         }
     }
 }
